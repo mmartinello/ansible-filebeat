@@ -1,3 +1,4 @@
 ---
 - name: Get Filebeat version
   ansible.builtin.include_tasks: install-get-version.yml
+  when: not filebeat_version | default(false)
