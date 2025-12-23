@@ -8,6 +8,3 @@ package_state: "{{ 'reinstalled' if filebeat_reinstall | default(false) else 'pr
 # Default filestream and journald inputs are disabled on Windows
 filebeat_default_filestream_input_enabled: false
 filebeat_default_journald_input_enabled: false
-
-# MSI download URL
-filebeat_msi_download_url: "https://artifacts.elastic.co/downloads/beats/filebeat/filebeat-{{ filebeat_major_version }}-windows-x86_64.msi"

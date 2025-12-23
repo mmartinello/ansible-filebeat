@@ -2,8 +2,15 @@
 # Filebeat major version to be installed
 filebeat_major_version: 8
 
+# Filebeat version to be installed
+# If not set, the latest stable version will be searched and installed
+filebeat_version: null
+
 # Reinstall service if already installed
 filebeat_reinstall: false
+
+# Upgrade service if already installed (alias for filebeat_reinstall)
+filebeat_upgrade: false
 
 # EnableFilebeat starting on boot
 filebeat_enable_on_boot: true
@@ -60,3 +67,9 @@ filebeat_modules_disabled: []
 
 # Modules configuration
 filebeat_modules_config: {}
+
+# MSI download URL
+filebeat_msi_download_url: "https://artifacts.elastic.co/downloads/beats/filebeat/filebeat-{{ filebeat_version }}-windows-x86_64.msi"
+
+# Filebeat service name
+filebeat_service_name: filebeat
