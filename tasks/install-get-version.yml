@@ -1,0 +1,80 @@
+---
+- name: Recupera elenco versioni Elastic (dal controller)
+  ansible.builtin.uri:
+    url: https://artifacts-api.elastic.co/v1/versions
+    method: GET
+    return_content: true
+  delegate_to: localhost
+  run_once: true
+  register: elastic_versions_raw
+
+- name: Parse JSON risposta (compatibile anche se .json non esiste)
+  ansible.builtin.set_fact:
+    elastic_versions_payload: >-
+      {{
+        (elastic_versions_raw.json
+          if (elastic_versions_raw.json is defined and elastic_versions_raw.json)
+          else (elastic_versions_raw.content | from_json))
+      }}
+  delegate_to: localhost
+  run_once: true
+
+- name: Normalizza major version (int)
+  ansible.builtin.set_fact:
+    filebeat_major_version_int: "{{ (filebeat_major_version | string | regex_search('^\\d+')) | int }}"
+  delegate_to: localhost
+  run_once: true
+
+- name: Init lista versioni filtrate
+  ansible.builtin.set_fact:
+    filebeat_versions_filtered: []
+  delegate_to: localhost
+  run_once: true
+
+- name: Accumula versioni stabili della major richiesta (compat massimo)
+  ansible.builtin.set_fact:
+    filebeat_versions_filtered: "{{ filebeat_versions_filtered + [item] }}"
+  loop: "{{ elastic_versions_payload.versions }}"
+  when:
+    - "'SNAPSHOT' not in item"
+    - (item | regex_search('^' ~ (filebeat_major_version_int | string) ~ '\\.')) is not none
+  delegate_to: localhost
+  run_once: true
+
+- name: Fail se non esistono versioni per la major richiesta (debug utile)
+  ansible.builtin.fail:
+    msg: >-
+      Nessuna versione trovata per major {{ filebeat_major_version_int }}.
+      Esempio versioni viste: {{ (elastic_versions_payload.versions | default([]))[:10] }}
+  when: filebeat_versions_filtered | length == 0
+  delegate_to: localhost
+  run_once: true
+
+- name: Init tuple per sort
+  ansible.builtin.set_fact:
+    filebeat_versions_tuples: []
+  delegate_to: localhost
+  run_once: true
+
+- name: Costruisci tuple numeriche per ordinamento (x.y.z)
+  ansible.builtin.set_fact:
+    filebeat_versions_tuples: "{{ filebeat_versions_tuples + [ {'v': item, 'k': (item.split('.') | map('int') | list)} ] }}"
+  loop: "{{ filebeat_versions_filtered }}"
+  delegate_to: localhost
+  run_once: true
+
+- name: Ordina e seleziona la versione più recente
+  ansible.builtin.set_fact:
+    filebeat_version_resolved: "{{ (filebeat_versions_tuples | sort(attribute='k') | last).v }}"
+  delegate_to: localhost
+  run_once: true
+
+- name: Imposta filebeat_version su ogni host
+  ansible.builtin.set_fact:
+    filebeat_version: "{{ filebeat_version_resolved }}"
+
+- name: Debug versione selezionata
+  ansible.builtin.debug:
+    msg: "Versione selezionata: {{ filebeat_version_resolved }}"
+  delegate_to: localhost
+  run_once: true
