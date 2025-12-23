@@ -1,0 +1,11 @@
+# {{ ansible_managed }}
+
+# Filebeat default configuration for module system on {{ ansible_system }}
+
+- module: system
+  syslog:
+    enabled: true
+    var.paths: ["/path/to/log/syslog*"]
+  auth:
+    enabled: true
+    var.paths: ["/path/to/log/auth.log*"]

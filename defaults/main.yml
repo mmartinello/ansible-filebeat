@@ -1,3 +1,62 @@
-#SPDX-License-Identifier: MIT-0
 ---
-# defaults file for mmartinello.filebeat
+# Filebeat major version to be installed
+filebeat_major_version: 8
+
+# Reinstall service if already installed
+filebeat_reinstall: false
+
+# EnableFilebeat starting on boot
+filebeat_enable_on_boot: true
+
+# Paths (Linux)
+filebeat_conf_path: /etc/filebeat
+filebeat_modules_path: /etc/filebeat/modules.d
+
+# Kibana host
+filebeat_kibana_host: "localhost:5601"
+
+# Kibana Space ID
+filebeat_kibana_space_id: ""
+
+# Elasticsearch output
+filebeat_elasticsearch_output_enabled: true
+filebeat_elasticsearch_hosts: ['localhost:9200']
+filebeat_elasticsearch_preset: balanced # balanced, throughput, scale, latency, custom
+filebeat_elasticsearch_protocol:
+filebeat_elasticsearch_api_key:
+filebeat_elasticsearch_username:
+filebeat_elasticsearch_password:
+
+# Logstash output
+filebeat_logstash_output_enabled: false
+filebeat_logstash_hosts: ['localhost:5044']
+filebeat_logstash_certificate_authorities:
+filebeat_logstash_ssl_certificate_path:
+filebeat_logstash_ssl_key_path:
+
+# Logging level
+filebeat_logging_level: info
+
+# Logging selectors (only for debug level)
+filebeat_logging_selectors: []
+
+# Setup index and dashboards
+filebeat_setup_index: false
+filebeat_setup_dashboards: false
+
+# Setup index lifecycle management (ILM)
+filebeat_setup_ilm_check_exists: true
+
+# Inputs
+filebeat_inputs: []
+
+# Enabled modules (system is enabled by default on Linux if not explicitly
+# disabled in filebeat_modules_disabled)
+filebeat_modules_enabled: []
+
+# Disabled modules
+# system is enabled by default on Linux if not explicitly disabled here
+filebeat_modules_disabled: []
+
+# Modules configuration
+filebeat_modules_config: {}

@@ -1,0 +1,20 @@
+---
+- name: Install Elasticsearch repository
+  ansible.builtin.include_role:
+    name: mmartinello.elastic
+  vars:
+    elastic_major_version: "{{ filebeat_major_version }}"
+
+- name: Install Filebeat
+  ansible.builtin.apt:
+    name: filebeat
+    state: present
+  notify: Restart Filebeat
+
+# Service startup
+- name: Ensure Filebeat is started and enabled on boot
+  ansible.builtin.service:
+    name: filebeat
+    state: started
+    enabled: "{{ filebeat_enable_on_boot }}"
+  when: ansible_system == "Linux"

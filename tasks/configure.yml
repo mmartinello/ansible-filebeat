@@ -1,0 +1,8 @@
+---
+- name: Configure on Linux
+  ansible.builtin.include_tasks: configure-Linux.yml
+  when: ansible_system == "Linux"
+
+- name: Configure on Windows
+  ansible.builtin.include_tasks: configure-Windows.yml
+  when: ansible_os_family == "Windows"

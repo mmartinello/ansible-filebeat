@@ -1,0 +1,30 @@
+---
+- name: Disable disabled Filebeat modules
+  ansible.builtin.file:
+    path: "{{ filebeat_modules_path }}/{{ item }}.yml"
+    state: absent
+  loop: "{{ filebeat_modules_disabled }}"
+  notify: Restart Filebeat
+
+- name: Configure modules with custom configuration
+  ansible.builtin.template:
+    src: "templates/module.yml.j2"
+    dest: "{{ filebeat_modules_path }}/{{ item }}.yml"
+    mode: '0644'
+    owner: root
+    group: root
+  loop: "{{ filebeat_modules_enabled }}"
+  vars:
+    module_name: "{{ item }}"
+    module_config: "{{ filebeat_modules_config[item] }}"
+  notify: Restart Filebeat
+
+- name: Enable the system module when not explicitly disabled
+  ansible.builtin.template:
+    src: "templates/module-system.yml.j2"
+    dest: "{{ filebeat_modules_path }}/system.yml"
+    mode: '0644'
+    owner: root
+    group: root
+  notify: Restart Filebeat
+  when: "'system' not in filebeat_modules_disabled"

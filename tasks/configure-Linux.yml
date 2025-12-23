@@ -1,0 +1,19 @@
+---
+- name: Configure Filebeat
+  ansible.builtin.template:
+    src: templates/filebeat.yml.j2
+    dest: "{{ filebeat_conf_path }}/filebeat.yml"
+    mode: '0644'
+  notify: Restart Filebeat
+
+- name: Setup Index and other Elasticsearch stuff
+  ansible.builtin.command:
+    cmd: filebeat setup --index-management
+  changed_when: false
+  when: filebeat_setup_index
+
+- name: Setup Kibana Dashboards
+  ansible.builtin.command:
+    cmd: filebeat setup --dashboards
+  changed_when: false
+  when: filebeat_setup_dashboards

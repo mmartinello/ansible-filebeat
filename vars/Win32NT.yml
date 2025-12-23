@@ -1,0 +1,10 @@
+---
+# Windows service start mode: auto if enabled on boot, manual otherwise
+start_mode: "{{ 'auto' if filebeat_enable_on_boot | default(true) else 'manual' }}"
+
+# Package state: reinstalled if reinstall is enabled, present otherwise
+package_state: "{{ 'reinstalled' if filebeat_reinstall | default(false) else 'present' }}"
+
+# Default filestream and journald inputs are disabled on Windows
+filebeat_default_filestream_input_enabled: false
+filebeat_default_journald_input_enabled: false

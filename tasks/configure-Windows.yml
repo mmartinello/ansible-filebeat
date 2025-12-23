@@ -1,0 +1,22 @@
+---
+- name: Configure Filebeat on Windows
+  ansible.windows.win_template:
+    src: templates/filebeat.yml.j2
+    dest: "{{ win_conf_path }}/filebeat.yml"
+  notify: Restart Filebeat on Windows
+
+- name: Ensure Filebeat is started and enabled on boot
+  ansible.windows.win_service:
+    name: filebeat
+    state: started
+    start_mode: "{{ start_mode }}"
+
+- name: Setup Index and other Elasticsearch stuff on Windows
+  ansible.windows.win_shell:
+    cmd: filebeat setup --index-management
+  when: filebeat_setup_index
+
+- name: Setup Kibana Dashboards on Windows
+  ansible.windows.win_shell:
+    cmd: filebeat setup --dashboards
+  when: filebeat_setup_dashboards
