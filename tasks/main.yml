@@ -37,3 +37,8 @@
 - name: Configure Filebeat modules
   ansible.builtin.include_tasks: configure-modules.yml
   tags: ['configure', 'modules']
+
+# Manage service
+- name: Manage Filebeat service
+  ansible.builtin.include_tasks: service.yml
+  tags: ['service']
