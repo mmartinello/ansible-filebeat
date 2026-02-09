@@ -2,7 +2,7 @@
 - name: Configure Filebeat on Windows
   ansible.windows.win_template:
     src: templates/filebeat.yml.j2
-    dest: "{{ win_conf_path }}/filebeat.yml"
+    dest: "{{ _filebeat_win_conf_path }}/filebeat.yml"
   notify: Restart Filebeat on Windows
 
 - name: Ensure Filebeat is started and enabled on boot

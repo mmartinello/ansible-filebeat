@@ -1,7 +1,7 @@
 ---
 - name: Disable disabled Filebeat modules
   ansible.windows.win_file:
-    path: "{{ win_modules_path }}/{{ item }}.yml"
+    path: "{{ _filebeat_win_modules_path }}/{{ item }}.yml"
     state: absent
   loop: "{{ filebeat_modules_disabled }}"
   notify: Restart Filebeat on Windows
@@ -9,7 +9,7 @@
 - name: Configure modules with custom configuration
   ansible.windows.win_template:
     src: "templates/module.yml.j2"
-    dest: "{{ win_modules_path }}/{{ item }}.yml"
+    dest: "{{ _filebeat_win_modules_path }}/{{ item }}.yml"
   vars:
     module_name: "{{ item }}"
     module_config: "{{ filebeat_modules_config[item] }}"

@@ -3,9 +3,11 @@
   ansible.builtin.include_tasks: install-get-version.yml
   when: not filebeat_version | default(false)
 
-- name: Compile Filebeat MSI URL
+- name: Set Filebeat variables
   ansible.builtin.set_fact:
-    filebeat_msi_download_url: "{{ filebeat_msi_download_url.replace('{{ filebeat_version }}', filebeat_version) }}"
+    _filebeat_msi_download_url: "{{ filebeat_msi_download_url.replace('{{ filebeat_version }}', filebeat_version) }}"
+    _filebeat_win_conf_path: "C:\\Program\ Files\\Elastic\\Beats\\{{ filebeat_version }}\\filebeat"
+    _filebeat_win_modules_path: "C:\\Program\ Files\\Elastic/Beats\\{{ filebeat_version }}\\filebeat/modules.d"
 
 - name: Debug Filebeat MSI URL
   ansible.builtin.debug:
@@ -19,7 +21,7 @@
 
 - name: Install Filebeat on Windows
   ansible.windows.win_package:
-    path: "{{ filebeat_msi_download_url }}"
+    path: "{{ _filebeat_msi_download_url }}"
     arguments: /qn /norestart
   when: filebeat_service.services | length == 0 or filebeat_reinstall or filebeat_upgrade
   notify: Restart Filebeat on Windows
