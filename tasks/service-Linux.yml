@@ -1,0 +1,7 @@
+---
+- name: Ensure Filebeat is started and enabled on boot
+  ansible.builtin.service:
+    name: filebeat
+    state: started
+    enabled: "{{ filebeat_enable_on_boot }}"
+  when: ansible_system == "Linux"
