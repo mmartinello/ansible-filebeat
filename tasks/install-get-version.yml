@@ -58,7 +58,7 @@
 
 - name: Build numeric tuples for sorting (x.y.z)
   ansible.builtin.set_fact:
-    filebeat_versions_tuples: "{{ filebeat_versions_tuples + [ {'v': item, 'k': (item.split('.') | map('int') | list)} ] }}"
+    filebeat_versions_tuples: "{{ filebeat_versions_tuples + [{'v': item, 'k': (item.split('.') | map('int') | list)}] }}"
   loop: "{{ filebeat_versions_filtered }}"
   delegate_to: localhost
   run_once: true
