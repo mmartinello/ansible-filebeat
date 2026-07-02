@@ -1,32 +1,72 @@
 ---
-- name: Get Filebeat version
+- name: Check if Filebeat service exists
+  when: not filebeat_reinstall and not filebeat_upgrade
+  block:
+    - name: Get Filebeat service information
+      ansible.windows.win_service_info:
+        name: filebeat
+      register: filebeat_service
+      failed_when: false
+
+    - name: Extract installed Filebeat version
+      ansible.builtin.set_fact:
+        filebeat_installed_version: "{{ filebeat_service.services[0].path | regex_search('[0-9]+\\.[0-9]+\\.[0-9]+') }}"
+      when:
+        - filebeat_service.exists
+        - filebeat_service.services | length > 0
+        - not filebeat_reinstall
+        - not filebeat_upgrade
+        - (filebeat_service.services[0].path | regex_search('[0-9]+\\.[0-9]+\\.[0-9]+')) is not none
+
+- name: Get latest Filebeat version from available versions from Elastic repository
   ansible.builtin.include_tasks: install-get-version.yml
-  when: not filebeat_version | default(false)
+  vars:
+    elastic_service_name: filebeat
+    elastic_major_version: "{{ filebeat_major_version }}"
+    elastic_version_var_name: filebeat_latest_version
+  when:
+    - filebeat_reinstall or filebeat_upgrade or (not filebeat_service.exists and not filebeat_version | default(false))
+
+- name: Debug filebeat_service
+  ansible.builtin.debug:
+    msg: "Filebeat service variable: {{ filebeat_service }}"
+
+- name: Get Filebeat version from installed version
+  ansible.builtin.set_fact:
+    filebeat_version: "{{ filebeat_installed_version }}"
+  when:
+    - filebeat_service.exists | default(false)
+    - filebeat_service.services | length > 0
+    - filebeat_installed_version is defined
+    - not filebeat_reinstall
+    - not filebeat_upgrade
+
+- name: Get Filebeat version from latest version
+  ansible.builtin.set_fact:
+    filebeat_version: "{{ filebeat_latest_version }}"
+  when:
+    - filebeat_latest_version is defined
+    - not filebeat_version | default(false) or filebeat_reinstall or filebeat_upgrade
 
 - name: Set Filebeat variables
   ansible.builtin.set_fact:
     _filebeat_msi_download_url: "{{ filebeat_msi_download_url.replace('{{ filebeat_version }}', filebeat_version) }}"
     _filebeat_win_conf_path: "C:\\Program Files\\Elastic\\Beats\\{{ filebeat_version }}\\filebeat"
-    _filebeat_win_modules_path: "C:\\Program Files\\Elastic\\Beats\\{{ filebeat_version }}\\filebeat/modules.d"
+    _filebeat_win_modules_path: "C:\\Program Files\\Elastic\\Beats\\{{ filebeat_version }}\\filebeat\\modules.d"
 
-- name: Debug Filebeat MSI URL
+- name: Debug Filebeat variables
   ansible.builtin.debug:
-    msg: "Filebeat MSI URL: {{ filebeat_msi_download_url }}"
-
-- name: Check if Filebeat service exists
-  ansible.windows.win_service_info:
-    name: filebeat
-  register: filebeat_service
-  failed_when: false
-
-- name: Starting Filebeat installation ...
-  ansible.builtin.debug:
-    msg: "Downloading Filebeat version {{ filebeat_version }} MSI from {{ _filebeat_msi_download_url }} ..."
-
+    msg: "Filebeat variables: filebeat_version: {{ filebeat_version }}, msi_download_url: {{ _filebeat_msi_download_url }}, win_conf_path: {{ _filebeat_win_conf_path }}, win_modules_path: {{ _filebeat_win_modules_path }}"
 
 - name: Install Filebeat on Windows
-  ansible.windows.win_package:
-    path: "{{ _filebeat_msi_download_url }}"
-    arguments: /qn /norestart
-  when: filebeat_service.services | length == 0 or filebeat_reinstall or filebeat_upgrade
-  notify: Restart Filebeat on Windows
+  when: not filebeat_service.exists or filebeat_reinstall or filebeat_upgrade
+  block:
+    - name: Starting Filebeat installation ...
+      ansible.builtin.debug:
+        msg: "Downloading Filebeat version {{ filebeat_version }} MSI from {{ _filebeat_msi_download_url }} ..."
+
+    - name: Install Filebeat on Windows
+      ansible.windows.win_package:
+        path: "{{ _filebeat_msi_download_url }}"
+        arguments: /qn /norestart
+      notify: Restart Filebeat on Windows
